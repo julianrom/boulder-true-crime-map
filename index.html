@@ -132,7 +132,7 @@ let heatData = [];
 
 
 // Load CSV + Add markers + add to heatmap
-Papa.parse("cases.csv", {
+Papa.parse("https://raw.githubusercontent.com/julianrom/boulder-true-crime-map/main/cases.csv", {
   download: true,
   header: true,
   complete: res => {
