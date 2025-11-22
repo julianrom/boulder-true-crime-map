@@ -2,12 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Boulder True Crime – Official Story vs. Community Memory (15 Cases)</title>
+  <title>Boulder County Homicides: Official Story vs. Community Memory</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
 
+  <!-- STYLE -->
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -35,14 +39,13 @@
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: #9ca3af;
-      margin-bottom: 4px;
     }
     .map-header-main {
       font-size: 18px;
       font-family: Georgia, serif;
       font-weight: 600;
       color: #f9fafb;
-      margin-bottom: 6px;
+      margin: 6px 0;
     }
     .map-header-sub {
       font-size: 12px;
@@ -62,11 +65,13 @@
       z-index: 1000;
       font-size: 12px;
       color: #d1d5db;
-      max-width: 360px;
     }
     .legend-title {
-      font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em;
-      margin-bottom: 6px; color: #9ca3af;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin-bottom: 6px;
+      color: #9ca3af;
     }
     .legend-row {
       display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
@@ -79,8 +84,8 @@
     .legend-dot.low { background: #6b7280; }
     .legend-note {
       margin-top: 6px;
-      font-size: 11px;
       color: #6b7280;
+      font-size: 11px;
     }
 
     /* RIGHT PANEL */
@@ -100,12 +105,16 @@
       overflow-y: auto;
     }
     .panel.open { right: 0; }
-    .panel h1, .panel h2, .panel h3 {
+    .panel h2 {
       font-family: Georgia, serif;
       margin-top: 0;
+      margin-bottom: 8px;
       color: #f3f4f6;
     }
-    .panel p { font-size: 13px; line-height: 1.5; }
+    .panel p {
+      font-size: 13px;
+      line-height: 1.5;
+    }
 
     .close-btn {
       background: none;
@@ -155,7 +164,9 @@
   <div class="map-header">
     <div class="map-header-title">Explorations in Anthropology · True Crime</div>
     <div class="map-header-main">Boulder County Homicides: Official Story vs. Community Memory</div>
-    <div class="map-header-sub">Fifteen homicide cases from 1911–2021, mapped across Boulder County to compare where violence is documented, sensationalized, or allowed to fade from view.</div>
+    <div class="map-header-sub">
+      Fifteen homicide cases from 1911–2021, mapped to examine how violence is recorded, remembered, or forgotten across Boulder County.
+    </div>
   </div>
 
   <!-- LEGEND UI -->
@@ -164,7 +175,7 @@
     <div class="legend-row"><span class="legend-dot high"></span>High — national / sustained regional</div>
     <div class="legend-row"><span class="legend-dot medium"></span>Medium — revived via cold-case attention</div>
     <div class="legend-row"><span class="legend-dot low"></span>Low — archival only / brief mention</div>
-    <div class="legend-note">Glow size increases with coverage.</div>
+    <div class="legend-note">Glow size scales with coverage intensity.</div>
   </div>
 
   <!-- Leaflet -->
@@ -174,16 +185,18 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <script>
-/* BASEMAP — FIXED */
+/* MAP INIT — CARTO DARK BASEMAP */
 const map = L.map('map').setView([40.05, -105.28], 11);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
   maxZoom: 19,
   attribution: '&copy; CARTO &copy; OpenStreetMap contributors'
 }).addTo(map);
 
 
-/* MARKER STYLE FUNCTION */
+/************
+ MARKER STYLE
+*************/
 function getMarkerStyle(coverage) {
   const c = (coverage || "").toLowerCase();
   if (c.startsWith("high")) return { color: "#b91c1c", radius: 14, glow: 0.55 };
@@ -191,7 +204,10 @@ function getMarkerStyle(coverage) {
   return { color: "#6b7280", radius: 6, glow: 0.2 };
 }
 
-/* HOVER UI FUNCTIONS */
+
+/************
+ HOVER LABEL
+*************/
 function showHover(e, c) {
   const hover = document.getElementById("hover");
   hover.innerText = c.case_name;
@@ -206,7 +222,10 @@ function hideHover() {
   document.getElementById("hover").style.display = "none";
 }
 
-/* PANEL FUNCTIONS */
+
+/************
+ SLIDE PANEL
+*************/
 function openPanel(c) {
   document.getElementById("panel-title").innerText = `${c.case_name} (${c.year})`;
   document.getElementById("panel-location").innerText = c.location;
@@ -222,13 +241,16 @@ function closePanel() {
   document.getElementById("info-panel").classList.remove("open");
 }
 
-/* LOAD CSV → ADD MARKERS */
+
+/************
+ LOAD CSV & ADD MARKERS
+*************/
 Papa.parse("cases.csv", {
   download: true,
   header: true,
   complete: function(results) {
     results.data.forEach(c => {
-      if(!c.latitude || !c.longitude) return;
+      if (!c.latitude || !c.longitude) return;
 
       const style = getMarkerStyle(c.media_coverage);
 
