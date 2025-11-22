@@ -6,12 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-  <!-- GLOBAL STYLES -->
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -69,17 +65,11 @@
       max-width: 360px;
     }
     .legend-title {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      margin-bottom: 6px;
-      color: #9ca3af;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em;
+      margin-bottom: 6px; color: #9ca3af;
     }
     .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 5px;
+      display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
     }
     .legend-dot {
       width: 12px; height: 12px; border-radius: 999px;
@@ -184,13 +174,14 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <script>
-/* BASEMAP */
+/* BASEMAP — FIXED */
 const map = L.map('map').setView([40.05, -105.28], 11);
 
-L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}.png', {
-  maxZoom: 18,
-  attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap contributors'
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19,
+  attribution: '&copy; CARTO &copy; OpenStreetMap contributors'
 }).addTo(map);
+
 
 /* MARKER STYLE FUNCTION */
 function getMarkerStyle(coverage) {
