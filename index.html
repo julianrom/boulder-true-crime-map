@@ -1,104 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>Boulder County True Crime Map</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <title>Boulder County Homicides: Official Story vs. Community Memory</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-<style>
-  html, body { margin: 0; height: 100%; background: #020617; }
-  #map { position: absolute; inset: 0; }
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #0a0a0a;
+      font-family: system-ui, sans-serif;
+    }
+    #map { position: absolute; inset: 0; }
 
-  /* Hover Label */
-  .hover-label {
-    position: absolute;
-    display: none;
-    padding: 6px 10px;
-    background: rgba(0,0,0,0.75);
-    color: white;
-    font-size: 11px;
-    border-radius: 6px;
-    pointer-events: none;
-    font-family: system-ui, sans-serif;
-    z-index: 2000;
-  }
+    /* PANEL */
+    .panel {
+      position: absolute;
+      right: -400px;
+      top: 0;
+      width: 380px;
+      height: 100%;
+      background: rgba(15,23,42,0.96);
+      border-left: 1px solid rgba(255,255,255,0.15);
+      color: white;
+      padding: 20px;
+      transition: 0.3s;
+      overflow-y: auto;
+    }
+    .panel.open { right: 0; }
+    .panel h2 { font-family: Georgia, serif; }
 
-  /* Slide Panel */
-  .panel {
-    position: absolute;
-    right: -420px;
-    top: 0;
-    width: 400px;
-    height: 100%;
-    background: rgba(15,23,42,0.96);
-    border-left: 1px solid rgba(255,255,255,0.12);
-    color: #e5e7eb;
-    padding: 26px;
-    font-family: system-ui, sans-serif;
-    transition: right 0.35s ease;
-    overflow-y: auto;
-    z-index: 2000;
-  }
-  .panel.open { right: 0; }
-  .panel h2 { font-family: Georgia, serif; margin-top: 0; }
-  .panel p { line-height: 1.45; font-size: 13px; margin-bottom: 10px; }
-
-  /* Header UI */
-  .map-header {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    padding: 14px 18px;
-    border-radius: 18px;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(14px);
-    color: #e5e7eb;
-    font-family: system-ui, sans-serif;
-    max-width: 420px;
-    z-index: 1200;
-  }
-  .map-header-title {
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    font-size: 11px;
-    color: #9ca3af;
-  }
-  .map-header-main {
-    margin-top: 4px;
-    font-size: 17px;
-    font-family: Georgia, serif;
-    color: #f9fafb;
-    font-weight: 600;
-  }
-  .map-header-sub {
-    margin-top: 6px;
-    font-size: 12px;
-    color: #9ca3af;
-  }
-
-  /* Legend UI */
-  .map-legend {
-    position: absolute;
-    bottom: 16px;
-    left: 16px;
-    padding: 14px 16px;
-    border-radius: 16px;
-    background: rgba(15, 23, 42, 0.85);
-    color: #d1d5db;
-    font-size: 12px;
-    font-family: system-ui, sans-serif;
-    backdrop-filter: blur(14px);
-    z-index: 1200;
-  }
-  .legend-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
-  .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
-  .legend-dot.high { background: #b91c1c; }
-  .legend-dot.medium { background: #f97316; }
-  .legend-dot.low { background: #6b7280; }
-
-</style>
+    .hover-label {
+      position: absolute;
+      display: none;
+      padding: 6px 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      font-size: 11px;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+  </style>
 </head>
 
 <body>
@@ -106,91 +52,86 @@
 <div id="map"></div>
 <div id="hover" class="hover-label"></div>
 
-<!-- Header -->
-<div class="map-header">
-  <div class="map-header-title">Explorations in Anthropology · True Crime Map</div>
-  <div class="map-header-main">Boulder County Homicides: Official Story vs. Community Memory</div>
-  <div class="map-header-sub">
-    Fifteen cases mapped to visualize how violence is remembered, archived, or forgotten across Boulder County.
-  </div>
-</div>
-
-<!-- Legend -->
-<div class="map-legend">
-  <div class="legend-row"><span class="legend-dot high"></span>High media coverage</div>
-  <div class="legend-row"><span class="legend-dot medium"></span>Medium coverage</div>
-  <div class="legend-row"><span class="legend-dot low"></span>Low coverage</div>
-</div>
-
-<!-- Slide Panel -->
 <div id="info-panel" class="panel">
   <h2 id="panel-title"></h2>
-  <p id="panel-location"></p>
   <p id="panel-summary"></p>
-  <p><strong>Official Story:</strong><br><span id="panel-official"></span></p>
-  <p><strong>Community Memory:</strong><br><span id="panel-community"></span></p>
-  <p><a id="panel-link" href="#" target="_blank" style="color:#93c5fd;">Source Link</a></p>
+  <p id="panel-location"></p>
+  <p id="panel-official"></p>
+  <p id="panel-community"></p>
+  <a id="panel-link" href="#" target="_blank">Source</a>
 </div>
 
+<!-- Core Scripts -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<!-- Heatmap Plugin -->
 <script src="https://unpkg.com/leaflet-webgl-heatmap/dist/leaflet-webgl-heatmap.js"></script>
 
 <script>
 
+// Init Map
 const map = L.map('map').setView([40.05, -105.28], 11);
 
 L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
   maxZoom: 19,
-  attribution: '&copy; CARTO & OpenStreetMap contributors'
+  attribution: '&copy; CARTO &copy; OpenStreetMap contributors'
 }).addTo(map);
 
 
-/* Media coverage -> weight */
-function getHeatWeight(tier) {
-  tier = (tier || "").toLowerCase();
-  if (tier.startsWith("high")) return 1.0;
-  if (tier.startsWith("medium")) return 0.6;
-  return 0.3;
+// Marker styling
+function styleFromCoverage(c) {
+  c = (c || "").toLowerCase();
+  if (c.startsWith("high")) return { color: "#b91c1c", radius: 14 };
+  if (c.startsWith("medium")) return { color: "#f97316", radius: 9 };
+  return { color: "#6b7280", radius: 6 };
 }
 
-/* Marker styling */
-function getStyle(c) {
-  const tier = (c.media_coverage || "").toLowerCase();
-  if (tier.startsWith("high")) return { color: "#b91c1c", radius: 12, glow: 0.4 };
-  if (tier.startsWith("medium")) return { color: "#f97316", radius: 9, glow: 0.25 };
-  return { color: "#6b7280", radius: 6, glow: 0.15 };
-}
 
-/* Panel open */
+// Panel open function
 function openPanel(c) {
   document.getElementById("panel-title").innerText = `${c.case_name} (${c.year})`;
-  document.getElementById("panel-location").innerText = c.location;
   document.getElementById("panel-summary").innerText = c.summary;
+  document.getElementById("panel-location").innerText = c.location;
   document.getElementById("panel-official").innerText = c.official_story;
   document.getElementById("panel-community").innerText = c.community_memory;
   document.getElementById("panel-link").href = c.link;
+
   document.getElementById("info-panel").classList.add("open");
 }
 
 
-/* Heatmap setup */
+// Hover label
+const hover = document.getElementById("hover");
+
+function showHover(e, c) {
+  hover.innerText = c.case_name;
+  hover.style.display = "block";
+}
+function moveHover(e) {
+  hover.style.left = e.originalEvent.pageX + 10 + "px";
+  hover.style.top = e.originalEvent.pageY + 10 + "px";
+}
+function hideHover() { hover.style.display = "none"; }
+
+
+// Heatmap layer setup
 const heat = L.webGLHeatmap({
-  size: 50,
-  units: "px",
+  size: 40,
   alphaRange: 0.7,
+  units: "px",
   gradientTexture: false,
   gradient: {
-    0.0: "#b91c1c",
+    0.0: "#0ff1ce",
     0.5: "#f97316",
-    1.0: "#fde047"
+    1.0: "#b91c1c"
   }
-});
+}).addTo(map);
 
 let heatData = [];
 
 
-/* Load CSV */
+// Load CSV + Add markers + add to heatmap
 Papa.parse("cases.csv", {
   download: true,
   header: true,
@@ -198,49 +139,29 @@ Papa.parse("cases.csv", {
     res.data.forEach(c => {
       if(!c.latitude || !c.longitude) return;
 
-      const weight = getHeatWeight(c.media_coverage);
-      heatData.push([+c.latitude, +c.longitude, weight]);
+      // Add to heatmap
+      heatData.push([+c.latitude, +c.longitude, parseInt(c.media_count || 1)]);
 
-      const s = getStyle(c);
+      const s = styleFromCoverage(c.media_coverage);
+
       const marker = L.circleMarker([+c.latitude, +c.longitude], {
         radius: s.radius,
         color: s.color,
         fillColor: s.color,
-        fillOpacity: 0.75 + s.glow
+        fillOpacity: 0.9
       }).addTo(map);
 
-      marker.on("mouseover", e => {
-        const h = document.getElementById("hover");
-        h.innerText = c.case_name;
-        h.style.display = "block";
-      });
-      marker.on("mousemove", e => {
-        const h = document.getElementById("hover");
-        h.style.left = (e.originalEvent.pageX + 12) + "px";
-        h.style.top = (e.originalEvent.pageY + 12) + "px";
-      });
-      marker.on("mouseout", () => {
-        document.getElementById("hover").style.display = "none";
-      });
       marker.on("click", () => openPanel(c));
+      marker.on("mouseover", e => showHover(e,c));
+      marker.on("mousemove", moveHover);
+      marker.on("mouseout", hideHover);
     });
 
     heat.setData(heatData);
   }
 });
 
-
-/* Layer Controls */
-const markerLayer = L.layerGroup(); // reserved if you want grouping later
-const heatLayer = heat;
-
-const overlays = {
-  "Case Markers": map,
-  "Heatmap Layer": heatLayer
-};
-
-L.control.layers(null, overlays, { collapsed: false }).addTo(map);
-
 </script>
+
 </body>
 </html>
