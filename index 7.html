@@ -1,0 +1,511 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Boulder True Crime – Official Story vs. Community Memory (15 Cases)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #020617;
+      color: #e5e7eb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    #map {
+      position: absolute;
+      inset: 0;
+    }
+    .map-header {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-width: min(520px, 92vw);
+    }
+    .map-header-title {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #9ca3af;
+    }
+    .map-header-main {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f9fafb;
+    }
+    .map-header-sub {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .map-legend {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      font-size: 12px;
+      color: #d1d5db;
+      max-width: min(360px, 90vw);
+    }
+    .legend-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+    }
+    .legend-dot.high {
+      background: #b91c1c;
+    }
+    .legend-dot.medium {
+      background: #f97316;
+    }
+    .legend-dot.low {
+      background: #6b7280;
+    }
+    .legend-note {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .case-popup {
+      min-width: 260px;
+      max-width: 360px;
+      padding: 10px 9px 9px;
+      background: #020617;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+      color: #e5e7eb;
+    }
+    .case-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+    }
+    .case-year {
+      font-weight: 600;
+      color: #f9fafb;
+    }
+    .case-location {
+      color: #6b7280;
+    }
+    .case-title {
+      font-size: 15px;
+      margin: 0 0 4px;
+      color: #f9fafb;
+    }
+    .case-victim {
+      margin: 0 0 6px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .case-summary {
+      font-size: 12px;
+      margin: 0 0 8px;
+      line-height: 1.4;
+      color: #e5e7eb;
+    }
+    .case-tags {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .tag {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.98);
+      white-space: nowrap;
+    }
+    .tag.media-high {
+      border-color: rgba(239, 68, 68, 0.9);
+      color: #fecaca;
+    }
+    .tag.media-medium {
+      border-color: rgba(251, 146, 60, 0.9);
+      color: #fed7aa;
+    }
+    .tag.media-low {
+      border-color: rgba(148, 163, 184, 0.9);
+      color: #e5e7eb;
+    }
+    .case-narrative {
+      border-top: 1px solid rgba(31, 41, 55, 0.95);
+      padding-top: 6px;
+      margin-top: 4px;
+    }
+    .case-narrative p {
+      margin: 0 0 4px;
+      font-size: 11px;
+      color: #d1d5db;
+    }
+    .case-narrative .label {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 10px;
+      color: #9ca3af;
+      display: inline-block;
+      margin-right: 4px;
+    }
+    .leaflet-popup-content-wrapper {
+      background: transparent;
+      border-radius: 20px;
+      padding: 0;
+      box-shadow: none;
+    }
+    .leaflet-popup-content {
+      margin: 0;
+    }
+    .leaflet-popup-tip {
+      background: #020617;
+    }
+    @media (max-width: 640px) {
+      .map-header {
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 18px;
+      }
+      .map-legend {
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="map-header">
+    <div class="map-header-title">Explorations in Anthropology · True Crime</div>
+    <div class="map-header-main">Boulder County Homicides: Official Story vs. Community Memory</div>
+    <div class="map-header-sub">Fifteen homicide cases from 1911–2021, mapped across Boulder County to compare where violence is documented, sensationalized, or allowed to fade from view.</div>
+  </div>
+  <div class="map-legend">
+    <div class="legend-title">Media Coverage Intensity</div>
+    <div class="legend-row">
+      <span class="legend-dot high"></span>
+      <span>High – national or sustained regional coverage</span>
+    </div>
+    <div class="legend-row">
+      <span class="legend-dot medium"></span>
+      <span>Medium – regional or revived via cold-case work</span>
+    </div>
+    <div class="legend-row">
+      <span class="legend-dot low"></span>
+      <span>Low – brief local mention or archival only</span>
+    </div>
+    <div class="legend-note">Markers highlight the gap between official case status and how (or whether) each homicide is remembered.</div>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script>
+
+const cases = [
+  {
+    id: "case01",
+    case_name: "JonBenét Ramsey Homicide",
+    year: 1996,
+    location: "Central Boulder (approximate)",
+    latitude: 40.0150,
+    longitude: -105.2705,
+    victims: "6-year-old girl",
+    summary: "Six-year-old JonBenét Ramsey was reported missing from her family’s Boulder home on December 26, 1996. Her body was discovered later that day in the basement with evidence of blunt-force trauma and ligature strangulation. Early investigative errors, conflicting theories, and intense national media attention shaped the trajectory of the case from the beginning. Despite numerous persons of interest and extensive DNA testing, no arrest has ever been made. The case remains one of the most widely discussed unsolved homicides in the United States.",
+    media_coverage: "High",
+    official_story: "Cold case under active review.",
+    community_memory: "Dominated by speculation and long-term national media attention."
+  },
+  {
+    id: "case02",
+    case_name: "King Soopers Mass Shooting",
+    year: 2021,
+    location: "King Soopers – Table Mesa Dr.",
+    latitude: 39.9871,
+    longitude: -105.2513,
+    victims: "10 victims",
+    summary: "On March 22, 2021, a gunman opened fire at the King Soopers on Table Mesa Drive, killing ten people, including a Boulder police officer. Boulder and national law enforcement agencies responded within minutes, and the suspect was wounded and taken into custody. The shooting prompted discussions about firearm access, public safety, and trauma within everyday community spaces. The legal proceedings extended over several years, ultimately resulting in a conviction on multiple felony counts. The event remains a defining moment in Boulder’s recent history.",
+    media_coverage: "High",
+    official_story: "Case closed by conviction and sentencing.",
+    community_memory: "Marked by memorials, vigils, and ongoing conversations about gun violence."
+  },
+  {
+    id: "case03",
+    case_name: "Sid Wells Homicide",
+    year: 1983,
+    location: "Near CU Boulder campus (student housing area)",
+    latitude: 40.0076,
+    longitude: -105.2691,
+    victims: "22-year-old CU student",
+    summary: "On August 1, 1983, 22-year-old CU student Sid Wells was found shot in the back of the head at a residence near the CU Boulder campus. The case drew national attention due to Wells’ relationship with Shauna Redford, daughter of actor Robert Redford. Investigators identified Wells’ roommate, Thayne Smika, as the primary suspect, but he fled Colorado and has remained missing for decades. Despite renewed efforts to locate him and a long-standing arrest warrant, the case has not progressed to prosecution.",
+    media_coverage: "Medium-High",
+    official_story: "Open homicide case with an outstanding warrant for a suspect.",
+    community_memory: "Remembered through media coverage and campus accounts of the case."
+  },
+  {
+    id: "case04",
+    case_name: "John Curtis Patterson – Gas Station Killing",
+    year: 1975,
+    location: "Cascade Service Station – N. Broadway, Boulder",
+    latitude: 40.0515,
+    longitude: -105.2810,
+    victims: "20-year-old gas station clerk",
+    summary: "Twenty-year-old John Patterson was working a shift at the Cascade Service Station on North Broadway when he was stabbed during an apparent robbery on September 29, 1975. Customers discovered him gravely injured in the station restroom, and he died shortly after. The case remained unsolved for nearly five decades. In 2025, forensic analysts used modern ballistics techniques to link the homicide to a man who had already died, allowing investigators to close the file without prosecution.",
+    media_coverage: "Medium",
+    official_story: "Exceptionally cleared based on new ballistic evidence.",
+    community_memory: "Periodically revisited in news coverage when forensic updates occur."
+  },
+  {
+    id: "case05",
+    case_name: "Dorothy Gay Howard – ‘Boulder Jane Doe’",
+    year: 1954,
+    location: "Boulder Falls – Boulder Canyon",
+    latitude: 40.0047,
+    longitude: -105.4059,
+    victims: "18-year-old woman",
+    summary: "The body of an unidentified young woman was found in April 1954 below Boulder Falls in Boulder Canyon. The victim had suffered blunt-force injuries consistent with homicide. With no identification and limited investigative leads, she was buried as “Jane Doe” in Boulder’s Columbia Cemetery. More than 50 years later, DNA testing and genealogical work confirmed her identity as Dorothy Gay Howard, an 18-year-old from Arizona. Although widely suspected, no perpetrator has been formally charged.",
+    media_coverage: "Medium",
+    official_story: "Victim identified; homicide remains unsolved.",
+    community_memory: "Her story is largely reconstructed through historical and genealogical research."
+  },
+  {
+    id: "case06",
+    case_name: "Christine Michelle Jones – Lefthand Canyon",
+    year: 1977,
+    location: "Lefthand Canyon – near Buckingham Park",
+    latitude: 40.0950,
+    longitude: -105.3150,
+    victims: "17-year-old girl",
+    summary: "Seventeen-year-old Christine Jones drove into Lefthand Canyon on September 1, 1977 to wash her car along the creek, a common informal practice at the time. When she did not return home, her family searched the area and found her deceased in the water near her vehicle. She had been strangled and shot. Multiple interviews and investigative reviews have taken place over the years, but no suspect has been arrested. The canyon setting has contributed to ongoing speculation about patterns of unsolved assaults in rural Boulder County.",
+    media_coverage: "Low-Medium",
+    official_story: "Unsolved homicide in the Boulder County cold-case files.",
+    community_memory: "Frequently discussed with other unsolved canyon cases."
+  },
+  {
+    id: "case07",
+    case_name: "Margaret ‘Margo’ Hillman – Heil Valley Ranch",
+    year: 1983,
+    location: "Heil Valley Ranch – northwest of Boulder",
+    latitude: 40.1503,
+    longitude: -105.2967,
+    victims: "14-year-old girl",
+    summary: "Fourteen-year-old Margo Hillman was last seen at a gathering at Heil Valley Ranch in September 1983. After she failed to return home, searches continued for months until her skeletal remains were located in a shallow grave on the property. Evidence suggested blunt-force trauma, but investigators have never arrested a suspect. The rural setting, lack of witnesses, and long delay before the discovery of remains left limited forensic opportunities.",
+    media_coverage: "Low-Medium",
+    official_story: "Open homicide case pending new leads.",
+    community_memory: "Remembered in relation to youth gatherings and isolated rural spaces."
+  },
+  {
+    id: "case08",
+    case_name: "Harold ‘Nicky’ Nicholson – Trunk Murder",
+    year: 1970,
+    location: "Near 136th Ave. & Sheridan Blvd. – former county line",
+    latitude: 39.9450,
+    longitude: -105.0400,
+    victims: "18-year-old man",
+    summary: "Harold “Nicky” Nicholson, 18, was found bludgeoned to death in the trunk of his car near the Boulder–Adams County line on May 6, 1970. Early investigative efforts focused on family conflict, and later reviews pointed strongly to Nicholson’s father-in-law as the likely perpetrator. Years after the homicide, investigators confirmed he had assumed a false identity in another state and had died before he could be charged. The case was closed without prosecution.",
+    media_coverage: "Low-Medium",
+    official_story: "Exceptionally cleared after identifying a deceased suspect.",
+    community_memory: "Receives relatively little public attention beyond historical listings."
+  },
+  {
+    id: "case09",
+    case_name: "Betty Lee Jones – Highway 128",
+    year: 1970,
+    location: "Highway 128 – west of Rocky Mountain Metro Airport",
+    latitude: 39.9125,
+    longitude: -105.1470,
+    victims: "23-year-old woman",
+    summary: "Highway workers discovered the body of 23-year-old Betty Lee Jones in a field along Highway 128 on March 9, 1970. She had been bound, assaulted, and fatally shot. With few leads, the case remained unsolved for decades. In 2020, genetic genealogy identified her suspected killer—who had already died—providing investigators with closure but no opportunity for trial. The case is notable for being one of Colorado’s earlier forensic-genealogy identifications.",
+    media_coverage: "Medium",
+    official_story: "Closed after post-mortem identification of a suspect.",
+    community_memory: "Known primarily for its role in advancing forensic genealogy."
+  },
+  {
+    id: "case10",
+    case_name: "Susan ‘Susie’ Becker – Boulder Canyon",
+    year: 1982,
+    location: "Boulder Canyon – west of Sugarloaf Road",
+    latitude: 40.0100,
+    longitude: -105.3920,
+    victims: "20-year-old woman",
+    summary: "On July 1, 1982, two fishermen discovered the partially decomposed body of 20-year-old Susan Becker on a slope above Boulder Canyon, west of Sugarloaf Road. She had been stabbed multiple times, but many wounds were superficial, and no clear motive or suspect was ever identified. Limited physical evidence and the remote terrain hindered investigative progress. Her case remains one of several unsolved violent deaths in the canyon corridor.",
+    media_coverage: "Low",
+    official_story: "Unsolved homicide in remote canyon terrain.",
+    community_memory: "Sporadically mentioned in cold-case summaries and true-crime forums."
+  },
+  {
+    id: "case11",
+    case_name: "Tracy Neef – Barker Reservoir",
+    year: 1984,
+    location: "Roadside pullout above Barker Reservoir",
+    latitude: 39.9550,
+    longitude: -105.5100,
+    victims: "7-year-old girl",
+    summary: "Seven-year-old Tracy Neef was abducted while walking to school in Thornton on March 17, 1984. Later that day, her body was found near a roadside pullout above Barker Reservoir in Boulder Canyon. The movement of the case from an urban neighborhood to a remote canyon area complicated jurisdictional work, and investigators have never identified a perpetrator. The case continues to raise questions about inter-county coordination in child abduction investigations.",
+    media_coverage: "Medium",
+    official_story: "Unsolved child abduction and homicide.",
+    community_memory: "Persists in regional discussions of child safety and unsolved crimes along the Front Range."
+  },
+  {
+    id: "case12",
+    case_name: "Frank Santos – US-36 Highway Shooting",
+    year: 2004,
+    location: "US-36 near Davidson Mesa Overlook",
+    latitude: 39.9580,
+    longitude: -105.1960,
+    victims: "37-year-old man",
+    summary: "On July 9, 2004, 37-year-old Frank Santos was shot while driving toward Boulder on US-36 near Davidson Mesa. Evidence indicated the gunshot came from another vehicle. Despite appeals to the public, extensive evidence reviews, and multiple investigative leads, no suspect or motive was ever confirmed. The randomness implied by a highway shooting added a rare and unsettling element to Boulder County’s homicide landscape.",
+    media_coverage: "Low",
+    official_story: "Open investigation with no identified suspect.",
+    community_memory: "Receives limited attention despite its unusual circumstances."
+  },
+  {
+    id: "case13",
+    case_name: "Angela Wilds – South St. Vrain Canyon",
+    year: 2006,
+    location: "South St. Vrain Canyon – southwest of Lyons",
+    latitude: 40.1980,
+    longitude: -105.3310,
+    victims: "38-year-old woman",
+    summary: "In July 2006, the decomposed and partially buried remains of 38-year-old Angela Wilds were discovered in South St. Vrain Canyon. Wilds was identified as a woman experiencing housing instability who had connections to Longmont. Detectives conducted numerous interviews with acquaintances and individuals who had seen her in the weeks before her death, but the isolated canyon location and advanced decomposition prevented a clear determination of events leading to her death.",
+    media_coverage: "Low",
+    official_story: "Unsolved homicide of a woman with unstable housing.",
+    community_memory: "Illustrates how deaths of marginalized people often receive minimal ongoing attention."
+  },
+  {
+    id: "case14",
+    case_name: "Charles Davenport – 1911 Rail-Corridor Killing",
+    year: 1911,
+    location: "Railroad corridor near Lafayette (approximate)",
+    latitude: 39.9940,
+    longitude: -105.0890,
+    victims: "47-year-old man",
+    summary: "In December 1911, 47-year-old Charles Davenport was found near a railroad corridor outside Lafayette with significant head injuries. Although early reports speculated he had been struck by a train, a coroner’s inquest determined the injuries were more consistent with an assault. With few investigative resources available at the time and no witnesses, the case was quickly suspended. Today it is considered Boulder County’s earliest documented unsolved homicide.",
+    media_coverage: "Very Low",
+    official_story: "Historic unsolved homicide held in archival records.",
+    community_memory: "Largely absent from present-day local consciousness."
+  },
+  {
+    id: "case15",
+    case_name: "Marty Grisham – Boulder Apartment Homicide",
+    year: 1994,
+    location: "East Boulder apartment area (approximate)",
+    latitude: 40.0190,
+    longitude: -105.2430,
+    victims: "48-year-old man",
+    summary: "On November 1, 1994, 48-year-old Marty Grisham was shot multiple times after answering his apartment door in east Boulder. Police arrested a suspect who was later convicted, but the conviction was vacated roughly three decades later amid revelations of forensic-lab misconduct affecting numerous Colorado cases. The legal reversal prompted a full reinvestigation and opened the possibility of a retrial. The case reflects broader questions about forensic reliability and criminal justice processes in the 1990s.",
+    media_coverage: "Medium",
+    official_story: "Homicide with a vacated conviction under renewed legal review.",
+    community_memory: "Revisited as part of wider concerns about wrongful convictions and forensic practices."
+  }
+];
+
+
+    const map = L.map('map', {
+      scrollWheelZoom: true,
+      zoomControl: true
+    }).setView([40.05, -105.28], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    function getCoverageClass(coverage) {
+      const v = (coverage || "").toLowerCase();
+      if (v.startsWith('high')) return 'high';
+      if (v.startsWith('medium')) return 'medium';
+      return 'low';
+    }
+
+    function getCoverageColor(coverage) {
+      const v = (coverage || "").toLowerCase();
+      if (v.startsWith('high')) return '#b91c1c';
+      if (v.startsWith('medium')) return '#f97316';
+      return '#6b7280';
+    }
+
+    cases.forEach(c => {
+      const color = getCoverageColor(c.media_coverage);
+      const marker = L.circleMarker([c.latitude, c.longitude], {
+        radius: 7,
+        color: color,
+        weight: 1.5,
+        fillColor: color,
+        fillOpacity: 0.9
+      }).addTo(map);
+
+      const coverageClass = getCoverageClass(c.media_coverage);
+
+      const popupHtml = `
+        <div class="case-popup">
+          <div class="case-meta">
+            <span class="case-year">${c.year}</span>
+            <span class="case-location">${c.location}</span>
+          </div>
+          <h2 class="case-title">${c.case_name}</h2>
+          <p class="case-victim">${c.victims}</p>
+          <p class="case-summary">${c.summary}</p>
+          <div class="case-tags">
+            <span class="tag media-${coverageClass}">${c.media_coverage} coverage</span>
+          </div>
+          <div class="case-narrative">
+            <p><span class="label">Official story</span>${c.official_story}</p>
+            <p><span class="label">Community memory</span>${c.community_memory}</p>
+          </div>
+        </div>
+      `;
+
+      marker.bindPopup(popupHtml);
+    });
+  </script>
+</body>
+</html>
